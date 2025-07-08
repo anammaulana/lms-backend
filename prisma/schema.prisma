@@ -14,10 +14,145 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+// model User {
+//   id       Int    @id @default(autoincrement())
+//   email    String @unique
+//   name     String
+//   password String
+//   createdAt DateTime @default(now())
+// }
 model User {
-  id       Int    @id @default(autoincrement())
-  email    String @unique
-  name     String
-  password String
-  createdAt DateTime @default(now())
+  id              Int      @id @default(autoincrement())
+  username        String   @unique
+  email           String   @unique
+  name            String?
+  bio             String?
+  department      String?
+  avatarUrl       String?
+  instructorTitle String?
+  instructorBio   String?
+  password        String
+  role            Role     @default(USER)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  taughtCourses   Course[] @relation("TaughtCourses")
+  enrollments     Enrollment[]
+  lessonProgress  LessonProgress[]
 }
+
+model Course {
+  id                  Int              @id @default(autoincrement())
+  title               String
+  slug                String           @unique
+  description         String?
+  thumbnailUrl        String?
+  youtubeEmbedUrl     String?
+  youtubeVideoId      String?
+  youtubeThumbnailUrl String?
+  price               Float?
+  rating              Float?
+  studentsEnrolled    Int?             @default(0)
+  lessonsCount        Int?             @default(1)
+  totalDurationHours  Float?           @default(1)
+  isNew               Boolean          @default(false)
+  createdAt           DateTime         @default(now())
+  updatedAt           DateTime         @updatedAt
+  instructorId        Int?
+  instructor          User?            @relation("TaughtCourses", fields: [instructorId], references: [id], onDelete: SetNull)
+  category            String?
+  level               String?
+  published           Boolean          @default(false)
+  modules             Module[]
+  enrollments         Enrollment[]
+  lessonProgress      LessonProgress[]
+  tags                CourseTag[]      // Pivot ke Tag
+}
+
+model Module {
+  id        Int      @id @default(autoincrement())
+  title     String
+  courseId  Int
+  course    Course   @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  lessons   Lesson[]
+  order     Int
+  @@unique([courseId, order])
+}
+
+model Lesson {
+  id               Int      @id @default(autoincrement())
+  title            String
+  content          String?
+  youtubeUrl       String?
+  youtubeVideoId   String?
+  videoUrl         String?
+  videoDuration    Int?
+  moduleId         Int
+  module           Module   @relation(fields: [moduleId], references: [id], onDelete: Cascade)
+  order            Int
+  duration         Int?
+  progress         LessonProgress[]
+  @@unique([moduleId, order])
+}
+
+model Enrollment {
+  id         Int      @id @default(autoincrement())
+  userId     Int
+  courseId   Int
+  enrolledAt DateTime @default(now())
+  progress   Float?   @default(0)
+  completed  Boolean  @default(false)
+
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  course     Course   @relation(fields: [courseId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, courseId])
+}
+
+model LessonProgress {
+  id              Int      @id @default(autoincrement())
+  userId          Int
+  lessonId        Int
+  courseId        Int
+  watchedSeconds  Int      @default(0)
+  totalSeconds    Int?
+  progressPercent Float    @default(0)
+  completed       Boolean  @default(false)
+  lastWatchedAt   DateTime @default(now())
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  lesson          Lesson   @relation(fields: [lessonId], references: [id], onDelete: Cascade)
+  course          Course   @relation(fields: [courseId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, lessonId])
+}
+
+model Tag {
+  id          Int         @id @default(autoincrement())
+  name        String      @unique
+  courseTags  CourseTag[]
+}
+
+model CourseTag {
+  course   Course @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  courseId Int
+  tag      Tag    @relation(fields: [tagId], references: [id], onDelete: Cascade)
+  tagId    Int
+
+  @@id([courseId, tagId])
+}
+
+enum Role {
+  USER
+  TEACHER
+  ADMIN
+}
+
+enum LessonType {
+  BACAAN
+  VIDEO
+  KUIS
+  TUGAS
+}
+
