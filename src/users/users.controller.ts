@@ -1,5 +1,4 @@
 import { BadRequestException, Body, Controller, Get, Logger, Param, ParseIntPipe, Post, Put, Request, UseGuards } from '@nestjs/common';
-import { User } from './entity/user.entity';
 import { UsersService } from './users.service';
 import { APIResponse } from 'src/common/helpers/api-response';
 import { UpdateUserDto } from './dto/update-user.dto';
@@ -15,7 +14,7 @@ export class UsersController {
 
     @Get()
     async getAll() {
-        const result = await this.usersService.getAll();
+        const result = await this.usersService.getAllUsers();
         // this.logger.log('Data Berhasil di Ambil...')
         return APIResponse.success(result, 'get data successfuly')
     }
@@ -26,7 +25,7 @@ export class UsersController {
         @Param('id', ParseIntPipe) id: number,
         @Body() dto: UpdateUserDto,
     ) {
-        const result = await this.usersService.updated(id, dto);
+        const result = await this.usersService.updateUser(id, dto);
         return APIResponse.success(result, `updated successfully`)
     }
 
@@ -35,7 +34,7 @@ export class UsersController {
         @Param('id') id: string,
         @Body() dto: ChangePasswordDto,
     ) {
-        const user = await this.usersService.findById(+id);
+        const user = await this.usersService.getUserById(+id);
         if (!user) {
             throw new BadRequestException('User not found');
         }

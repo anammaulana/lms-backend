@@ -1,103 +1,33 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
-import { User } from './entity/user.entity';
-import { PrismaService } from 'src/prisma/prisma.service';
 import { UpdateUserDto } from './dto/update-user.dto';
+import { UserRepository } from './user.repository';
+import * as bcrypt from 'bcrypt';
 
 @Injectable()
 export class UsersService {
-    private users: User[] = [];
-    constructor(private prisma: PrismaService) { }
-
-
-    async create(data: { username: string; email: string; password: string }) {
-        return this.prisma.user.create({ data });
+    constructor(private userRepo: UserRepository) { }
+    async getAllUsers() {
+        return this.userRepo.getAll();
     }
 
-    async findByEmail(email: string) {
-        return this.prisma.user.findUnique({ where: { email } });
+    async getUserById(id: number) {
+        return this.userRepo.getById(id);
     }
 
-    async getAll() {
-        return this.prisma.user.findMany();
-    }
-    async getById(id: number) {
-        const user = await this.prisma.user.findUnique({
-            where: { id },
-        });
-
-        if (!user) {
-            throw new NotFoundException(`User with ID ${id} not found`);
-        }
-
-        return user;
-    }
-    async updated(id: number, data: UpdateUserDto) {
-        const user = await this.getById(id); // validasi keberadaan user
-        const updateData = { ...data };
-
-        // hash password jika diupdate
-        // if (data.password) {
-        //     updateData.password = await bcrypt.hash(data.password, 10);
-        // }
-        return this.prisma.user.update({
-            where: { id: user.id },
-            data: updateData,
-            select: {
-                id: true,
-                username: true,
-                email: true,
-                name: true,
-                bio: true,
-                department: true,
-                avatarUrl: true,
-                instructorTitle: true,
-                instructorBio: true,
-                createdAt: true,
-                updatedAt: true,
-            // password dan role tidak disertakan
-              },
-        });
+    async getUserByEmail(email: string) {
+        return this.userRepo.findByEmail(email);
     }
 
-    async findById(id: number) {
-        return this.prisma.user.findUnique({
-            where: { id },
-        });
+    async updateUser(id: number, data: UpdateUserDto) {
+        return this.userRepo.updated(id, data);
     }
 
-    async updatePassword(id: number, hashedPassword: string) {
-        return this.prisma.user.update({
-            where: { id },
-            data: {
-                password: hashedPassword,
-            },
-        });
+    async updatePassword(id: number, newPassword: string) {
+        const hashed = await bcrypt.hash(newPassword, 10);
+        return this.userRepo.updatePassword(id, hashed);
     }
-    
+
     async getProfile(userId: number) {
-        const user = await this.prisma.user.findUnique({
-            where: { id: userId },
-            select: {
-                id: true,
-                username: true,
-                email: true,
-                name: true,
-                bio: true,
-                department: true,
-                avatarUrl: true,
-                instructorTitle: true,
-                instructorBio: true,
-                createdAt: true,
-                updatedAt: true,
-                // password dan role tidak disertakan
-            },
-        });
-
-        if (!user) {
-            throw new NotFoundException('User not found');
-        }
-
-        return user;
+        return this.userRepo.getProfile(userId);
       }
-
 }
