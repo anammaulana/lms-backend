@@ -72,5 +72,32 @@ export class UsersService {
                 password: hashedPassword,
             },
         });
+    }
+    
+    async getProfile(userId: number) {
+        const user = await this.prisma.user.findUnique({
+            where: { id: userId },
+            select: {
+                id: true,
+                username: true,
+                email: true,
+                name: true,
+                bio: true,
+                department: true,
+                avatarUrl: true,
+                instructorTitle: true,
+                instructorBio: true,
+                createdAt: true,
+                updatedAt: true,
+                // password dan role tidak disertakan
+            },
+        });
+
+        if (!user) {
+            throw new NotFoundException('User not found');
+        }
+
+        return user;
       }
+
 }

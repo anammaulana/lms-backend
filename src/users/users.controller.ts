@@ -1,4 +1,4 @@
-import { BadRequestException, Body, Controller, Get, Logger, Param, ParseIntPipe, Post, Put } from '@nestjs/common';
+import { BadRequestException, Body, Controller, Get, Logger, Param, ParseIntPipe, Post, Put, Request, UseGuards } from '@nestjs/common';
 import { User } from './entity/user.entity';
 import { UsersService } from './users.service';
 import { APIResponse } from 'src/common/helpers/api-response';
@@ -6,8 +6,9 @@ import { UpdateUserDto } from './dto/update-user.dto';
 import { ApiBody } from '@nestjs/swagger';
 import { ChangePasswordDto } from './dto/change-password.dto';
 import * as bcrypt from 'bcrypt';
+import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
 
-@Controller('users')
+@Controller('api/users')
 export class UsersController {
     constructor(private readonly usersService: UsersService) { }
     private readonly logger = new Logger(UsersController.name);
@@ -51,4 +52,14 @@ export class UsersController {
         return APIResponse.success('Password updated successfully')
     }
 
+
+    @UseGuards(JwtAuthGuard)
+    @Get('profile')
+    async getProfile(@Request() req) {
+        const userId = req.user.userId;
+        const result = await this.usersService.getProfile(userId);
+
+        return APIResponse.success(result, 'Get Profile successfully');
+    }
+    
 }
