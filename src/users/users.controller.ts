@@ -1,9 +1,11 @@
-import { Body, Controller, Get, Logger, Param, ParseIntPipe, Post, Put } from '@nestjs/common';
+import { BadRequestException, Body, Controller, Get, Logger, Param, ParseIntPipe, Post, Put } from '@nestjs/common';
 import { User } from './entity/user.entity';
 import { UsersService } from './users.service';
 import { APIResponse } from 'src/common/helpers/api-response';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { ApiBody } from '@nestjs/swagger';
+import { ChangePasswordDto } from './dto/change-password.dto';
+import * as bcrypt from 'bcrypt';
 
 @Controller('users')
 export class UsersController {
@@ -25,6 +27,28 @@ export class UsersController {
     ) {
         const result = await this.usersService.updated(id, dto);
         return APIResponse.success(result, `updated successfully`)
+    }
+
+    @Put(':id/change-password')
+    async changePassword(
+        @Param('id') id: string,
+        @Body() dto: ChangePasswordDto,
+    ) {
+        const user = await this.usersService.findById(+id);
+        if (!user) {
+            throw new BadRequestException('User not found');
+        }
+
+        const isMatch = await bcrypt.compare(dto.oldPassword, user.password);
+        if (!isMatch) {
+            throw new BadRequestException('Old password is incorrect');
+        }
+
+        const hashedPassword = await bcrypt.hash(dto.newPassword, 10);
+
+        const result = await this.usersService.updatePassword(+id, hashedPassword);
+
+        return APIResponse.success('Password updated successfully')
     }
 
 }
