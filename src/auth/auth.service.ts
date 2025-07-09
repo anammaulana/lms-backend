@@ -18,7 +18,7 @@ export class AuthService {
     async register(dto: RegisterDto) {
         const hashedPassword = await bcrypt.hash(dto.password, 10);
         try {
-            const user = await this.usersService.create({
+            const user = await this.usersService.register({
                 username: dto.username,
                 email: dto.email,
                 password: hashedPassword,
@@ -49,7 +49,7 @@ export class AuthService {
     
 
     async login(dto: LoginDto) {
-        const user = await this.usersService.findByEmail(dto.email);
+        const user = await this.usersService.getUserByEmail(dto.email);
         if (!user) throw new UnauthorizedException('Invalid credentials');
 
         const isPasswordMatch = await bcrypt.compare(dto.password, user.password);

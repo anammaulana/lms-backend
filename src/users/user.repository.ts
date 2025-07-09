@@ -6,6 +6,10 @@ import { UpdateUserDto } from './dto/update-user.dto';
 @Injectable()
 export class UserRepository {
     constructor(private readonly prisma: PrismaService) { }
+
+      async create(data: { username: string; email: string; password: string }) {
+            return this.prisma.user.create({ data });
+        }
     
         async findByEmail(email: string) {
             return this.prisma.user.findUnique({ where: { email } });
@@ -28,6 +32,11 @@ export class UserRepository {
         async updated(id: number, data: UpdateUserDto) {
             const user = await this.getById(id); // validasi keberadaan user
             const updateData = { ...data };
+    
+            // hash password jika diupdate
+            // if (data.password) {
+            //     updateData.password = await bcrypt.hash(data.password, 10);
+            // }
             return this.prisma.user.update({
                 where: { id: user.id },
                 data: updateData,

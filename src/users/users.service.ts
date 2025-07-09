@@ -6,6 +6,10 @@ import * as bcrypt from 'bcrypt';
 @Injectable()
 export class UsersService {
     constructor(private userRepo: UserRepository) { }
+    async register(data: { username: string; email: string; password: string }) {
+        return this.userRepo.create(data);
+    }
+
     async getAllUsers() {
         return this.userRepo.getAll();
     }
