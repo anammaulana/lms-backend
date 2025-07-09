@@ -2,7 +2,7 @@ import { BadRequestException, Body, Controller, Get, Logger, Param, ParseIntPipe
 import { UsersService } from './users.service';
 import { APIResponse } from 'src/common/helpers/api-response';
 import { UpdateUserDto } from './dto/update-user.dto';
-import { ApiBody } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiBody } from '@nestjs/swagger';
 import { ChangePasswordDto } from './dto/change-password.dto';
 import * as bcrypt from 'bcrypt';
 import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
@@ -53,6 +53,7 @@ export class UsersController {
 
 
     @UseGuards(JwtAuthGuard)
+    @ApiBearerAuth()
     @Get('profile')
     async getProfile(@Request() req) {
         const userId = req.user.userId;
