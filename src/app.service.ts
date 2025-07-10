@@ -5,10 +5,10 @@ export class AppService {
   getHello(): string {
     return `
       <html>
-        <head><title>Welcome</title></head>
+        <head><title>LMS SERVICE</title></head>
         <body>
           <h1>Ini RestFul API LMS Service</h1>
-           <p>Dokumentasi API: <a href="/api">Klik di sini</a></p>
+           <p>Dokumentasi API: <a href="/api-docs">Klik di sini</a></p>
         </body>
       </html>
     `;

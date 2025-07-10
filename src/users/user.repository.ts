@@ -87,6 +87,7 @@ export class UserRepository {
                     instructorBio: true,
                     createdAt: true,
                     updatedAt: true,
+                    role: true
                     // password dan role tidak disertakan
                 },
             });
